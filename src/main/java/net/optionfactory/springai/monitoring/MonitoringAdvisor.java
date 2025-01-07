@@ -21,7 +21,7 @@ public class MonitoringAdvisor implements CallAroundAdvisor, StreamAroundAdvisor
     public final Map<String, Long> threadStreamStartTimesMs = new ConcurrentHashMap<>();
 
     public MonitoringAdvisor(MeterRegistry meterRegistry) {
-        Gauge.builder("ditabit.monitoring.gpt.call", () -> {
+        Gauge.builder("ditabit.monitoring.gpt.live.oldest.callduration", () -> {
                     final var now = Instant.now();
                     return threadCallStartTimesMs.values().stream().mapToLong(Long::longValue)
                             .min()
@@ -31,7 +31,7 @@ public class MonitoringAdvisor implements CallAroundAdvisor, StreamAroundAdvisor
                             .orElse(0);
                 })
                 .register(meterRegistry);
-        Gauge.builder("ditabit.monitoring.gpt.stream", () -> {
+        Gauge.builder("ditabit.monitoring.gpt.live.oldest.streamduration", () -> {
                     final var now = Instant.now();
                     return threadStreamStartTimesMs.values().stream().mapToLong(Long::longValue)
                             .min()
