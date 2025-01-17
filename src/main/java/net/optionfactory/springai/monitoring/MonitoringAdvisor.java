@@ -48,17 +48,23 @@ public class MonitoringAdvisor implements CallAroundAdvisor, StreamAroundAdvisor
     @Override
     public AdvisedResponse aroundCall(AdvisedRequest advisedRequest, CallAroundAdvisorChain chain) {
         threadCallStartTimesMs.put(Thread.currentThread().getName(), Instant.now().toEpochMilli());
-        final var advisedResponse = chain.nextAroundCall(advisedRequest);
-        threadCallStartTimesMs.remove(Thread.currentThread().getName());
-        return advisedResponse;
+        try {
+            return chain.nextAroundCall(advisedRequest);
+        } finally {
+            threadCallStartTimesMs.remove(Thread.currentThread().getName());
+
+        }
+
     }
 
     @Override
     public Flux<AdvisedResponse> aroundStream(AdvisedRequest advisedRequest, StreamAroundAdvisorChain chain) {
         threadStreamStartTimesMs.put(Thread.currentThread().getName(), Instant.now().toEpochMilli());
-        final var advisedResponse = chain.nextAroundStream(advisedRequest);
-        threadStreamStartTimesMs.remove(Thread.currentThread().getName());
-        return advisedResponse;
+        try {
+            return chain.nextAroundStream(advisedRequest);
+        } finally {
+            threadStreamStartTimesMs.remove(Thread.currentThread().getName());
+        }
     }
 
     @Override
