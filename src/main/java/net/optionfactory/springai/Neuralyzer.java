@@ -1,12 +1,14 @@
 package net.optionfactory.springai;
 
 import com.knuddels.jtokkit.Encodings;
+import com.knuddels.jtokkit.api.EncodingRegistry;
 import com.knuddels.jtokkit.api.ModelType;
 
 /**
  * See: <a href="https://meninblack.fandom.com/wiki/Neuralyzer">explanation of the name</a>
  */
 public class Neuralyzer {
+    private static final EncodingRegistry registry = Encodings.newDefaultEncodingRegistry();
 
     /**
      * Forget the final part of the text counting token with GPT_4O model.
@@ -28,7 +30,6 @@ public class Neuralyzer {
      * @return truncated text
      */
     public static String forget(String text, int maxTokens, ModelType modelType) {
-        final var registry = Encodings.newDefaultEncodingRegistry();
         final var encoding = registry.getEncodingForModel(modelType);
         var currentString = text;
         while (encoding.countTokens(currentString) > maxTokens) {
