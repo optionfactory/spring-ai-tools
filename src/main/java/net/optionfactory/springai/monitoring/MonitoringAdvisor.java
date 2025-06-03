@@ -2,12 +2,12 @@ package net.optionfactory.springai.monitoring;
 
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.ai.chat.client.advisor.api.AdvisedRequest;
-import org.springframework.ai.chat.client.advisor.api.AdvisedResponse;
-import org.springframework.ai.chat.client.advisor.api.CallAroundAdvisor;
-import org.springframework.ai.chat.client.advisor.api.CallAroundAdvisorChain;
-import org.springframework.ai.chat.client.advisor.api.StreamAroundAdvisor;
-import org.springframework.ai.chat.client.advisor.api.StreamAroundAdvisorChain;
+import org.springframework.ai.chat.client.ChatClientRequest;
+import org.springframework.ai.chat.client.ChatClientResponse;
+import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
+import org.springframework.ai.chat.client.advisor.api.CallAdvisorChain;
+import org.springframework.ai.chat.client.advisor.api.StreamAdvisor;
+import org.springframework.ai.chat.client.advisor.api.StreamAdvisorChain;
 import reactor.core.publisher.Flux;
 
 import java.time.Instant;
@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static net.optionfactory.springai.monitoring.MetricNameProvider.getMetricName;
 
-public class MonitoringAdvisor implements CallAroundAdvisor, StreamAroundAdvisor {
+public class MonitoringAdvisor implements CallAdvisor, StreamAdvisor {
 
 
     public final Map<String, Long> threadCallStartTimesMs = new ConcurrentHashMap<>();
@@ -45,27 +45,6 @@ public class MonitoringAdvisor implements CallAroundAdvisor, StreamAroundAdvisor
                 .register(meterRegistry);
     }
 
-    @Override
-    public AdvisedResponse aroundCall(AdvisedRequest advisedRequest, CallAroundAdvisorChain chain) {
-        threadCallStartTimesMs.put(Thread.currentThread().getName(), Instant.now().toEpochMilli());
-        try {
-            return chain.nextAroundCall(advisedRequest);
-        } finally {
-            threadCallStartTimesMs.remove(Thread.currentThread().getName());
-
-        }
-
-    }
-
-    @Override
-    public Flux<AdvisedResponse> aroundStream(AdvisedRequest advisedRequest, StreamAroundAdvisorChain chain) {
-        threadStreamStartTimesMs.put(Thread.currentThread().getName(), Instant.now().toEpochMilli());
-        try {
-            return chain.nextAroundStream(advisedRequest);
-        } finally {
-            threadStreamStartTimesMs.remove(Thread.currentThread().getName());
-        }
-    }
 
     @Override
     public String getName() {
@@ -75,5 +54,26 @@ public class MonitoringAdvisor implements CallAroundAdvisor, StreamAroundAdvisor
     @Override
     public int getOrder() {
         return HIGHEST_PRECEDENCE;
+    }
+
+    @Override
+    public ChatClientResponse adviseCall(ChatClientRequest chatClientRequest, CallAdvisorChain callAdvisorChain) {
+        threadCallStartTimesMs.put(Thread.currentThread().getName(), Instant.now().toEpochMilli());
+        try {
+            return callAdvisorChain.nextCall(chatClientRequest);
+        } finally {
+            threadCallStartTimesMs.remove(Thread.currentThread().getName());
+
+        }
+    }
+
+    @Override
+    public Flux<ChatClientResponse> adviseStream(ChatClientRequest chatClientRequest, StreamAdvisorChain streamAdvisorChain) {
+        threadStreamStartTimesMs.put(Thread.currentThread().getName(), Instant.now().toEpochMilli());
+        try {
+            return streamAdvisorChain.nextStream(chatClientRequest);
+        } finally {
+            threadStreamStartTimesMs.remove(Thread.currentThread().getName());
+        }
     }
 }
