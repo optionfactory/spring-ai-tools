@@ -9,13 +9,14 @@ import java.util.function.Supplier;
 import static net.optionfactory.springai.monitoring.MetricNameProvider.getMetricName;
 
 public class QueueMeter {
+    private final MeterRegistry meterRegistry;
     private final Counter enqueuedCounter;
     private final Counter dequeuedCounter;
-
-    private Supplier<Number> queueLengthSupplier = () -> 0;
+    private Gauge queueLength;
 
     public QueueMeter(MeterRegistry meterRegistry) {
-        Gauge.builder(getMetricName("queue.length"), queueLengthSupplier)
+        this.meterRegistry = meterRegistry;
+        queueLength = Gauge.builder(getMetricName("queue.length"), () -> 0)
                 .register(meterRegistry);
 
         this.enqueuedCounter = Counter.builder(getMetricName("queue.enqueued"))
@@ -32,7 +33,9 @@ public class QueueMeter {
         dequeuedCounter.increment();
     }
 
-    public void setQueueLengthSupplier(Supplier<Number> s) {
-        queueLengthSupplier = s;
+    public void setQueueLengthSupplier(Supplier<Number> supplier) {
+        meterRegistry.remove(queueLength);
+        this.queueLength = Gauge.builder(getMetricName("queue.length"), supplier)
+                .register(meterRegistry);
     }
 }
