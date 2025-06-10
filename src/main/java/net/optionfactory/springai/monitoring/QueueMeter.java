@@ -12,7 +12,9 @@ public class QueueMeter {
     private final Counter enqueuedCounter;
     private final Counter dequeuedCounter;
 
-    public QueueMeter(MeterRegistry meterRegistry, Supplier<Number> queueLengthSupplier) {
+    private Supplier<Number> queueLengthSupplier = () -> 0;
+
+    public QueueMeter(MeterRegistry meterRegistry) {
         Gauge.builder(getMetricName("queue.length"), queueLengthSupplier)
                 .register(meterRegistry);
 
@@ -28,5 +30,9 @@ public class QueueMeter {
 
     public void dequeued() {
         dequeuedCounter.increment();
+    }
+
+    public void setQueueLengthSupplier(Supplier<Number> s) {
+        queueLengthSupplier = s;
     }
 }
