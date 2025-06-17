@@ -29,8 +29,16 @@ public class QueueMeter {
         enqueuedCounter.increment();
     }
 
+    public void enqueued(double amount) {
+        enqueuedCounter.increment(amount);
+    }
+
     public void dequeued() {
         dequeuedCounter.increment();
+    }
+
+    public void dequeued(double amount) {
+        dequeuedCounter.increment(amount);
     }
 
     public void setQueueLengthSupplier(Supplier<Number> supplier) {
