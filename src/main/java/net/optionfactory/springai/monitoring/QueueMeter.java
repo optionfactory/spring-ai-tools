@@ -6,22 +6,22 @@ import io.micrometer.core.instrument.MeterRegistry;
 
 import java.util.function.Supplier;
 
-import static net.optionfactory.springai.monitoring.MetricNameProvider.getMetricName;
-
 public class QueueMeter {
+    private final MetricNameProvider nameProvider;
     private final MeterRegistry meterRegistry;
     private final Counter enqueuedCounter;
     private final Counter dequeuedCounter;
     private Gauge queueLength;
 
-    public QueueMeter(MeterRegistry meterRegistry) {
+    public QueueMeter(MetricNameProvider nameProvider, MeterRegistry meterRegistry) {
+        this.nameProvider = nameProvider;
         this.meterRegistry = meterRegistry;
-        queueLength = Gauge.builder(getMetricName("queue.length"), () -> 0)
+        queueLength = Gauge.builder(nameProvider.getMetricName("queue.length"), () -> 0)
                 .register(meterRegistry);
 
-        this.enqueuedCounter = Counter.builder(getMetricName("queue.enqueued"))
+        this.enqueuedCounter = Counter.builder(nameProvider.getMetricName("queue.enqueued"))
                 .register(meterRegistry);
-        this.dequeuedCounter = Counter.builder(getMetricName("queue.dequeued"))
+        this.dequeuedCounter = Counter.builder(nameProvider.getMetricName("queue.dequeued"))
                 .register(meterRegistry);
     }
 
@@ -43,7 +43,7 @@ public class QueueMeter {
 
     public void setQueueLengthSupplier(Supplier<Number> supplier) {
         meterRegistry.remove(queueLength);
-        this.queueLength = Gauge.builder(getMetricName("queue.length"), supplier)
+        this.queueLength = Gauge.builder(nameProvider.getMetricName("queue.length"), supplier)
                 .register(meterRegistry);
     }
 }

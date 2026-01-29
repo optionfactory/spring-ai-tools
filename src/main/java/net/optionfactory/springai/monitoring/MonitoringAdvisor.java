@@ -14,16 +14,14 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static net.optionfactory.springai.monitoring.MetricNameProvider.getMetricName;
-
 public class MonitoringAdvisor implements CallAdvisor, StreamAdvisor {
 
 
     public final Map<String, Long> threadCallStartTimesMs = new ConcurrentHashMap<>();
     public final Map<String, Long> threadStreamStartTimesMs = new ConcurrentHashMap<>();
 
-    public MonitoringAdvisor(MeterRegistry meterRegistry) {
-        Gauge.builder(getMetricName("gpt.live.oldest.callduration"), () -> {
+    public MonitoringAdvisor(MetricNameProvider nameProvider, MeterRegistry meterRegistry) {
+        Gauge.builder(nameProvider.getMetricName("gpt.live.oldest.callduration"), () -> {
                     final var now = Instant.now();
                     return threadCallStartTimesMs.values().stream().mapToLong(Long::longValue)
                             .min()
@@ -33,7 +31,7 @@ public class MonitoringAdvisor implements CallAdvisor, StreamAdvisor {
                             .orElse(0);
                 })
                 .register(meterRegistry);
-        Gauge.builder(getMetricName("gpt.live.oldest.streamduration"), () -> {
+        Gauge.builder(nameProvider.getMetricName("gpt.live.oldest.streamduration"), () -> {
                     final var now = Instant.now();
                     return threadStreamStartTimesMs.values().stream().mapToLong(Long::longValue)
                             .min()
