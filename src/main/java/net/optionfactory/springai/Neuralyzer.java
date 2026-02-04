@@ -1,7 +1,9 @@
 package net.optionfactory.springai;
 
 import com.knuddels.jtokkit.Encodings;
+import com.knuddels.jtokkit.api.Encoding;
 import com.knuddels.jtokkit.api.EncodingRegistry;
+import com.knuddels.jtokkit.api.EncodingType;
 import com.knuddels.jtokkit.api.ModelType;
 
 /**
@@ -30,7 +32,31 @@ public class Neuralyzer {
      * @return truncated text
      */
     public static String forget(String text, int maxTokens, ModelType modelType) {
-        final var encoding = registry.getEncodingForModel(modelType);
+        return forget(text, maxTokens, registry.getEncodingForModel(modelType));
+    }
+
+    /**
+     * Forget the final part of the text counting token with specified model.
+     *
+     * @param text         input text
+     * @param maxTokens    max tokens to shrink the output
+     * @param encodingType specify the encodingType to use for token count
+     * @return truncated text
+     */
+    public static String forget(String text, int maxTokens, EncodingType encodingType) {
+        return forget(text, maxTokens, registry.getEncoding(encodingType));
+    }
+
+
+    /**
+     * Forget the final part of the text counting token with specified model.
+     *
+     * @param text      input text
+     * @param maxTokens max tokens to shrink the output
+     * @param encoding  specify the encoding to use for token count
+     * @return truncated text
+     */
+    public static String forget(String text, int maxTokens, Encoding encoding) {
         var currentString = text;
         while (encoding.countTokens(currentString) > maxTokens) {
             float avgTokenLength = (float) currentString.length() / encoding.countTokens(currentString);
